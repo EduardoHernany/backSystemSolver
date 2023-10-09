@@ -40,41 +40,41 @@ def jordan_matrix_matrix(request):
     else:
         return JsonResponse({'error': 'Método não permitido'}, status=405)
 
-def elimination_gaussianaa(A, b):
-    n = len(b)
+
+
+def elimination_gaussianaa(M):
+    n = M.shape[0]
     x = np.zeros(n)
 
     matrices = []
     steps = []
 
-    # Fase de eliminação
     for i in range(n):
-        pivot = A[i, i]
+        pivot = M[i, i]
         if pivot == 0:
             return None  # Verificar divisão por zero
         
         for j in range(i + 1, n):
-            lj = np.column_stack((A.copy(), b.copy()))[j, :].copy()  # Copie a linha lj antes de fazer a operação
-            matrices.append(np.column_stack((A.copy(), b.copy())))
-            factor = A[j, i] / pivot
-            f = f'A({j+1},{i+1})/pivô  = {A[j,i]}/{pivot} = {factor}'
-            b[j] -= factor * b[i]
-            A[j, i:] -= factor * A[i, i:]
+            lj = M[j, :].copy()  # Copiar a linha inteira antes da operação
+            matrices.append(M.copy())
+            factor = M[j, i] / pivot
+            f = f'A({j + 1},{i + 1})/pivot = {M[j, i]}/{pivot} = {factor}'
+            M[j, :] -= factor * M[i, :]
            
             step = {
-                'pivo': pivot,
+                'pivot': pivot,
                 'factor': f,
                 'step_number': len(matrices),
-                'operation': f"L{j + 1} =  {factor:.2f} * L{i + 1}= {np.column_stack((A.copy(), b.copy()))[i,:].tolist()} - L{j + 1}= {lj.tolist()}".replace(',',''),
+                'operation': f"R{j + 1} = R{j + 1} - {factor:.2f} * R{i + 1}",
             }
             steps.append(step)
 
-    matrices.append(np.column_stack((A.copy(), b.copy())))
-    # Fase de substituição retroativa
-    for i in range(n - 1, -1, -1):
-        x[i] = (b[i] - np.dot(A[i, i + 1:], x[i + 1:])) / A[i, i]
+    matrices.append(M.copy())
 
-    return x, A, b, steps, matrices
+    for i in range(n - 1, -1, -1):
+        x[i] = (M[i, -1] - np.dot(M[i, i + 1:n], x[i + 1:])) / M[i, i]
+
+    return x, M, steps, matrices
 
     
 
